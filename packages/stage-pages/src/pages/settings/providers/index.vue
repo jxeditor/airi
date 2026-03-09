@@ -5,9 +5,11 @@ import { useRippleGridState } from '@proj-airi/stage-ui/composables/use-ripple-g
 import { useProvidersStore } from '@proj-airi/stage-ui/stores/providers'
 import { storeToRefs } from 'pinia'
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
 
 const route = useRoute()
+const { t } = useI18n()
 const providersStore = useProvidersStore()
 const { lastClickedIndex, setLastClickedIndex } = useRippleGridState()
 const { trackProviderClick } = useAnalytics()
@@ -22,22 +24,22 @@ const providerBlocksConfig = [
   {
     id: 'chat',
     icon: 'i-solar:chat-square-like-bold-duotone',
-    title: 'Chat',
-    description: 'Text generation model providers. e.g. OpenRouter, OpenAI, Ollama.',
+    titleKey: 'settings.pages.providers.blocks.chat.title',
+    descriptionKey: 'settings.pages.providers.blocks.chat.description',
     providersRef: allChatProvidersMetadata,
   },
   {
     id: 'speech',
     icon: 'i-solar:user-speak-rounded-bold-duotone',
-    title: 'Speech',
-    description: 'Speech (text-to-speech) model providers. e.g. ElevenLabs, Azure Speech.',
+    titleKey: 'settings.pages.providers.blocks.speech.title',
+    descriptionKey: 'settings.pages.providers.blocks.speech.description',
     providersRef: allAudioSpeechProvidersMetadata,
   },
   {
     id: 'transcription',
     icon: 'i-solar:microphone-3-bold-duotone',
-    title: 'Transcription',
-    description: 'Transcription (speech-to-text) model providers. e.g. Whisper.cpp, OpenAI, Azure Speech',
+    titleKey: 'settings.pages.providers.blocks.transcription.title',
+    descriptionKey: 'settings.pages.providers.blocks.transcription.description',
     providersRef: allAudioTranscriptionProvidersMetadata,
   },
 ]
@@ -47,8 +49,8 @@ const providerBlocks = computed(() => {
   return providerBlocksConfig.map(block => ({
     id: block.id,
     icon: block.icon,
-    title: block.title,
-    description: block.description,
+    title: t(block.titleKey),
+    description: t(block.descriptionKey),
     providers: block.providersRef.value.map(provider => ({
       ...provider,
       renderIndex: globalIndex++,
@@ -76,7 +78,7 @@ useScrollToHash(() => route.hash, {
           <template #chat>
             <div bg="primary-500/10 dark:primary-800/25" inline-flex items-center gap-1 rounded-lg px-2 py-0.5 translate-y="[0.25lh]">
               <div i-solar:chat-square-like-bold-duotone />
-              <strong class="font-normal">Chat</strong>
+              <strong class="font-normal">{{ $t('settings.pages.providers.blocks.chat.title') }}</strong>
             </div>
           </template>
         </i18n-t>
@@ -108,7 +110,7 @@ useScrollToHash(() => route.hash, {
 
       <template #item="{ item: provider }">
         <IconStatusItem
-          :title="provider.localizedName || 'Unknown'"
+          :title="provider.localizedName || $t('settings.pages.providers.unknown-provider')"
           :description="provider.localizedDescription"
           :icon="provider.icon"
           :icon-color="provider.iconColor"

@@ -1,0 +1,9 @@
+diff --git a/dist/duckdb-browser-eh.worker.js b/dist/duckdb-browser-eh.worker.js
+index bef4580227585437f84b237a2eaf1424a4c549a9..72386c21c1d85b71ab64be0c3b4d379cd49b8e69 100644
+--- a/dist/duckdb-browser-eh.worker.js
++++ b/dist/duckdb-browser-eh.worker.js
+@@ -11,4 +11,3 @@ js-sha256/src/sha256.js:
+    * @license MIT
+    *)
+ */
+-//# sourceMappingURL=duckdb-browser-eh.worker.js.map

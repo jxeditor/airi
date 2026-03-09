@@ -78,7 +78,7 @@ export const useSpeechStore = defineStore('speech', () => {
     if (activeSpeechProvider.value === 'alibaba-cloud-model-studio' && activeSpeechModel.value === 'cosyvoice-v2') {
       return true
     }
-    return ['elevenlabs', 'microsoft-speech', 'azure-speech', 'google', 'volcengine'].includes(activeSpeechProvider.value)
+    return ['elevenlabs', 'microsoft-speech', 'edge-tts', 'azure-speech', 'google', 'volcengine'].includes(activeSpeechProvider.value)
   })
 
   async function loadVoicesForProvider(provider: string) {
@@ -118,6 +118,11 @@ export const useSpeechStore = defineStore('speech', () => {
     if (newProvider) {
       await loadVoicesForProvider(newProvider)
       // Don't reset voice settings when changing providers to allow for persistence
+
+      // Auto-set default model for providers that don't require model selection
+      if (newProvider === 'edge-tts' && !activeSpeechModel.value) {
+        activeSpeechModel.value = 'v1'
+      }
     }
   }, {
     // REVIEW: should we always load voices on init? What will happen when network is not available?
@@ -144,7 +149,7 @@ export const useSpeechStore = defineStore('speech', () => {
       }
     },
 
-    { immediate: true },
+    { immediate: false },
   )
 
   onMounted(() => {

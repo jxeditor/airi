@@ -2,7 +2,7 @@
 import type { VoiceInfo } from '../../../stores/providers'
 
 import { FieldCheckbox, FieldSelect } from '@proj-airi/ui'
-import { computed, onUnmounted, ref, watch } from 'vue'
+import { computed, nextTick, onUnmounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import SpeechStreamingPlayground from './speech-streaming-playground.vue'
@@ -13,6 +13,7 @@ const props = defineProps<{
   // Input fields
   defaultText?: string
   availableVoices: VoiceInfo[]
+  selectedVoice?: string
 
   // Provider-specific handlers (provided from parent)
   generateSpeech: (input: string, voice: string, useSSML: boolean) => Promise<ArrayBuffer>
@@ -20,6 +21,10 @@ const props = defineProps<{
   // Current state
   apiKeyConfigured?: boolean
   voicesLoading?: boolean
+}>()
+
+const emit = defineEmits<{
+  'update:selectedVoice': [value: string]
 }>()
 
 const { t } = useI18n()
@@ -32,14 +37,17 @@ const errorMessage = ref('')
 const audioPlayer = ref<HTMLAudioElement | null>(null)
 const useSSML = ref(false)
 const ssmlText = ref('')
-const selectedVoice = ref('')
+const selectedVoiceLocal = computed({
+  get: () => props.selectedVoice || '',
+  set: (v: string) => emit('update:selectedVoice', v),
+})
 
 // Watch for changes in available voices
 watch(
   () => props.availableVoices,
   (newVoices) => {
-    if (newVoices.length > 0 && !selectedVoice.value) {
-      selectedVoice.value = newVoices[0]?.id || ''
+    if (newVoices.length > 0 && !selectedVoiceLocal.value) {
+      selectedVoiceLocal.value = newVoices[0]?.id || ''
     }
   },
   { immediate: true },
@@ -52,9 +60,39 @@ const voiceOptions = computed(() => {
   }))
 })
 
+/** Wait for audio element to have new src then play; surface decode/play errors. */
+async function playBlobUrl(_url: string): Promise<void> {
+  await nextTick()
+  const el = audioPlayer.value
+  if (!el)
+    return
+  const onError = () => {
+    errorMessage.value = '音频解码或加载失败，请检查格式或换声线重试。'
+  }
+  el.addEventListener('error', onError, { once: true })
+  try {
+    await el.play()
+  }
+  catch (e) {
+    errorMessage.value = (e instanceof Error ? e.message : String(e)) || 'Playback failed.'
+  }
+}
+
+/** Sniff audio format from magic bytes so the Blob has correct MIME for playback. */
+function getAudioMimeType(buffer: ArrayBuffer): string {
+  const arr = new Uint8Array(buffer)
+  if (arr.length >= 4 && arr[0] === 0x52 && arr[1] === 0x49 && arr[2] === 0x46 && arr[3] === 0x46)
+    return 'audio/wav'
+  if (arr.length >= 2 && arr[0] === 0xFF && (arr[1] === 0xFB || arr[1] === 0xFA))
+    return 'audio/mpeg'
+  if (arr.length >= 3 && arr[0] === 0x49 && arr[1] === 0x44 && arr[2] === 0x33)
+    return 'audio/mpeg'
+  return 'audio/mpeg'
+}
+
 // Function to generate speech
 async function handleGenerateTestSpeech() {
-  if ((!testText.value.trim() && !useSSML.value) || (useSSML.value && !ssmlText.value.trim()) || !selectedVoice.value)
+  if ((!testText.value.trim() && !useSSML.value) || (useSSML.value && !ssmlText.value.trim()) || !selectedVoiceLocal.value)
     return
 
   isGenerating.value = true
@@ -68,17 +106,18 @@ async function handleGenerateTestSpeech() {
 
     const input = useSSML.value ? ssmlText.value : testText.value
 
-    const response = await props.generateSpeech(input, selectedVoice.value, useSSML.value)
+    const response = await props.generateSpeech(input, selectedVoiceLocal.value, useSSML.value)
 
-    // Convert the response to a blob and create an object URL
-    audioUrl.value = URL.createObjectURL(new Blob([response]))
+    if (!response || response.byteLength === 0) {
+      errorMessage.value = 'No audio data received.'
+      return
+    }
 
-    // Play the audio
-    setTimeout(() => {
-      if (audioPlayer.value) {
-        audioPlayer.value.play()
-      }
-    }, 100)
+    const mimeType = getAudioMimeType(response)
+    const url = URL.createObjectURL(new Blob([response], { type: mimeType }))
+    audioUrl.value = url
+
+    await playBlobUrl(url)
   }
   catch (error) {
     console.error('Error generating speech:', error)
@@ -115,7 +154,7 @@ defineExpose({
   testText,
   ssmlText,
   useSSML,
-  selectedVoice,
+  selectedVoice: selectedVoiceLocal,
   isGenerating,
   audioUrl,
   errorMessage,
@@ -164,7 +203,7 @@ defineExpose({
       </template>
 
       <FieldSelect
-        v-model="selectedVoice"
+        v-model="selectedVoiceLocal"
         :options="voiceOptions"
         :label="t('settings.pages.providers.provider.elevenlabs.playground.fields.field.voice.label')"
         :description="t('settings.pages.providers.provider.elevenlabs.playground.fields.field.voice.description')"
@@ -175,8 +214,8 @@ defineExpose({
       <button
         border="neutral-800 dark:neutral-200 solid 2" transition="border duration-250 ease-in-out"
         rounded-lg px-3 text="neutral-100 dark:neutral-900" py-1.5 text-sm
-        :disabled="isGenerating || voicesLoading || (!testText.trim() && !useSSML) || (useSSML && !ssmlText.trim()) || !selectedVoice || !apiKeyConfigured"
-        :class="{ 'opacity-50 cursor-not-allowed': isGenerating || voicesLoading || (!testText.trim() && !useSSML) || (useSSML && !ssmlText.trim()) || !selectedVoice || !apiKeyConfigured }"
+        :disabled="isGenerating || voicesLoading || (!testText.trim() && !useSSML) || (useSSML && !ssmlText.trim()) || !selectedVoiceLocal || !apiKeyConfigured"
+        :class="{ 'opacity-50 cursor-not-allowed': isGenerating || voicesLoading || (!testText.trim() && !useSSML) || (useSSML && !ssmlText.trim()) || !selectedVoiceLocal || !apiKeyConfigured }"
         bg="neutral-700 dark:neutral-300" @click="handleGenerateTestSpeech"
       >
         <div flex="~ row" items-center gap-2>
@@ -188,7 +227,7 @@ defineExpose({
       <div v-if="!apiKeyConfigured" class="mt-2 text-sm text-red-500">
         {{ t('settings.pages.providers.provider.elevenlabs.playground.validation.error-missing-api-key') }}
       </div>
-      <div v-if="voicesLoading || !selectedVoice" class="mt-2 text-sm text-red-500">
+      <div v-if="voicesLoading || !selectedVoiceLocal" class="mt-2 text-sm text-red-500">
         {{ voicesLoading ? t('settings.pages.modules.speech.sections.section.playground.select-voice.loading') : t('settings.pages.modules.speech.sections.section.playground.select-voice.required') }}
       </div>
       <div v-if="errorMessage" class="mt-2 text-sm text-red-500">
@@ -198,7 +237,7 @@ defineExpose({
 
       <SpeechStreamingPlayground
         :text="testText"
-        :voice="selectedVoice"
+        :voice="selectedVoiceLocal"
         :generate-speech="generateSpeech"
       />
     </div>

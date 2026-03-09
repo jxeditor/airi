@@ -81,6 +81,7 @@
     "vite": "^7.3.1",
     "vite-plugin-inspect": "^11.3.3",
     "vitest": "^4.0.18",
+    "ws": "catalog:",
     "yaml": "^2.8.2"
   },
   "workspaces": [

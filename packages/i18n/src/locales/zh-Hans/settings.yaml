@@ -337,6 +337,75 @@ pages:
     hearing:
       description: 语音识别
       title: 听觉
+      no-providers:
+        title: 未配置语音转录服务来源
+        description: 点击这里配置语音转录服务来源
+      audio-input:
+        label: 音频输入设备
+        description: 选择听觉模块使用的音频输入设备。
+        placeholder: 选择音频输入设备
+      model:
+        description-manual: 输入要使用的转录模型（例如：'whisper-1'、'gpt-4o-transcribe'）
+        placeholder: whisper-1
+      auto-send:
+        title: 自动发送设置
+        description: 配置将转录文本自动发送到聊天的行为
+        enabled:
+          label: 自动发送转录文本
+          description: 在延迟后自动将转录文本发送到聊天。这可能会消耗 token；如果你想在发送前手动检查和编辑转录结果，请关闭此选项。
+        delay:
+          label: 自动发送延迟
+          description: 自动发送转录文本前的延迟时间（毫秒）（0 = 立即发送，建议 1000-3000ms）
+          immediate: 立即
+      monitoring:
+        start: 开始监听
+        stop: 停止监听
+      meters:
+        input-level: 输入电平
+        speech-probability: 语音概率
+        detection-threshold: 检测阈值
+        sensitivity:
+          label: 灵敏度
+          description: 调整语音检测阈值
+      speaking:
+        detected: 检测到说话
+        model-based: 模型检测
+        volume-based: 音量检测
+        model-based-description: 使用 AI 模型获得更准确的语音检测
+      voice-activity:
+        title: 语音活动
+        subtitle: 最近 2 秒
+        active-label: 正在说话
+        active-legend: 检测到语音
+        threshold-label: 语音阈值
+      stt-test:
+        title: 语音转文本测试
+        description: 使用所选音频设备测试你的转录服务来源，以确认 STT 是否正常工作。
+        select-provider: 请先选择上方的转录服务来源再进行测试
+        select-audio-input: 请先选择要测试的音频输入设备
+        start: 开始语音转文本测试
+        stop: 停止测试
+        transcribing: 正在转录...
+        streaming-mode: 流式模式：当你说话时会实时显示转录内容
+        result: 转录结果
+        current-streaming: 当前转录内容（流式）：
+        final: 最终转录结果：
+        no-transcription: 暂无转录结果。点击“开始语音转文本测试”后对着麦克风说话。
+      common:
+        silence: 静音
+        speech: 语音
+        loading: 加载中...
+        activated: 已启用
+        probability: 概率
+      errors:
+        generic: 发生错误
+        inference: 推理错误
+        transcription: 转录错误
+        select-provider-first: 请先选择转录服务来源
+        select-audio-input-first: 请先选择音频输入设备
+      status:
+        transcribing-recording: 正在转录录音...
+        transcribing-streaming: 正在转录...（流式）
       sections:
         section:
           provider-selection:
@@ -358,6 +427,27 @@ pages:
       configured: Discord已正确配置！
     speech:
       description: 语音合成
+      no-providers:
+        title: 未配置语音服务来源
+        description: 点击这里配置语音服务来源
+      fields:
+        model:
+          label: 模型
+          description: 输入用于语音生成的 TTS 模型
+          manual-description-discovery-failed: 如果模型发现失败，请手动输入模型名称
+          manual-description-empty: 当未返回任何模型时，请手动输入模型名称
+        pitch:
+          label: 音高
+          description: 调整声音音高
+        enable-ssml:
+          label: 启用 SSML
+          description: 启用语音合成标记语言，以更精细地控制语音输出
+        voice-name:
+          label: 声线名称
+          description: 输入自定义声线的名称
+          placeholder: 输入声线名称（例如：'alloy'、'echo'）
+      errors:
+        loading-voices: 加载声线时出错
       sections:
         section:
           playground:
@@ -377,7 +467,7 @@ pages:
             no_voices_description: 该服务来源的声线列表没有返回任何的数据
             no_voices_hint: 可以在下方输入自定义声线名字
             pause: 暂停
-            play_sample: Play
+            play_sample: 播放
             search_models_placeholder: 搜索模型...
             search_models_results: 找到 {count} / {total} 个模型
             search_voices_placeholder: 搜索声线...
@@ -388,6 +478,9 @@ pages:
             show_less: 显示更少
             show_more: 显示更多
             title: 选择语音合成服务来源
+          voice-configuration:
+            title: 声线配置
+            description: 自定义 AI 助手的说话方式
           voice-settings:
             input-ssml:
               placeholder: 请输入 SSML 文本
@@ -420,11 +513,11 @@ pages:
     mcp-server:
       description: 连接和管理 MCP 服务器及工具
       title: MCP 服务器
-      config-path: Config file path
-      runtime-title: Runtime status
+      config-path: 配置文件路径
+      runtime-title: 运行时状态
       actions:
-        open-config: Open mcp.json
-        apply-and-restart: Save and restart stdio MCP
+        open-config: 打开 mcp.json
+        apply-and-restart: 保存并重启 stdio MCP
       messages:
         opened: Config file opened at {path}
         restarted: MCP servers restarted. Started {started}, failed {failed}, skipped {skipped}
@@ -438,6 +531,17 @@ pages:
       title: 第一次使用？
       description: >
         AIRI 需要配置至少一个 {chat} 服务来源，才能正常思考和运作。你可以把它看作是 AIRI 系统中角色的大脑。
+    blocks:
+      chat:
+        title: 聊天
+        description: 文本生成模型服务来源，例如 OpenRouter、OpenAI、Ollama。
+      speech:
+        title: 语音
+        description: 语音（文本转语音）模型服务来源，例如 ElevenLabs、Azure Speech。
+      transcription:
+        title: 转录
+        description: 语音转文本模型服务来源，例如 Whisper.cpp、OpenAI、Azure Speech。
+    unknown-provider: 未知来源
     catalog:
       edit:
         config-id-not-found: 未找到服务来源配置。
@@ -548,6 +652,8 @@ pages:
       alibaba-cloud-model-studio:
         description: bailian.console.aliyun.com
         title: 阿里百炼
+        playground:
+          default-text: 你好！这是阿里云语音合成测试。
       anthropic:
         description: anthropic.com
         title: Anthropic | Claude
@@ -592,6 +698,11 @@ pages:
       deepgram-tts:
         description: deepgram.com
         title: Deepgram
+        playground:
+          default-text: 你好！这是 Deepgram 语音合成测试。
+      speech-noop:
+        title: 无
+        description: 无语音输出。
       deepseek:
         description: DeepSeek.com
         title: 深度求索 DeepSeek
@@ -615,6 +726,7 @@ pages:
               description: 夸张的语音风格
               label: 风格
         playground:
+          default-text: 你好！这是 ElevenLabs 语音合成测试。
           buttons:
             button:
               test-voice:
@@ -661,6 +773,17 @@ pages:
       fireworks:
         description: Fireworks.ai
         title: Fireworks.ai
+      edge-tts:
+        browser-notice: 微软仅允许 Edge 浏览器直连，使用 Chrome/Firefox/Safari 将无法生成语音。请用 Microsoft Edge 打开本页面试用。
+        description: 免费微软 Edge TTS — 无需 API Key
+        fields:
+          field:
+            proxy-url:
+              description: 选填。在 Chrome/Firefox/Safari 下可自建代理（如用 edge-tts-universal 起本地服务），将代理地址填在此处即可使用。
+              label: 代理 URL（选填）
+        title: 微软 Edge TTS（免费）
+        playground:
+          default-text: 你好！这是微软 Edge TTS 的中文语音测试。
       microsoft-speech:
         description: speech.microsoft.com
         fields:
@@ -669,11 +792,30 @@ pages:
               description: 服务 Endpoint 地区（比如亚太 eastasia 区域）
               label: Endpoint 地区
         title: Microsoft / Azure 语音服务
+        playground:
+          default-text: 你好！这是微软语音合成测试。
       index-tts-vllm:
         description: https://index-tts.github.io/
         title: Bilibili / IndexTTS
         callout_indextts2_unavailable_title: 暂不支持
         callout_indextts2_unavailable: 目前尚未支持 IndexTTS2，请使用 IndexTTS。
+        playground:
+          default-text: 你好！这是 Index TTS 语音合成测试。
+      openai-audio-speech:
+        playground:
+          default-text: 你好！这是 OpenAI 语音合成测试。
+      openai-compatible-audio-speech:
+        playground:
+          default-text: 你好！这是 OpenAI 兼容语音合成测试。
+      comet-api-speech:
+        playground:
+          default-text: 你好！这是 Comet API 语音合成测试。
+      player2-speech:
+        help:
+          download: 请先下载并启动 Player2：
+          discord: 如果你需要帮助，可以加入 Player2 Discord：
+        playground:
+          default-text: 你好！这是 Player2 语音合成测试。
       azure-ai-foundry:
         description: Azure AI Foundry
         title: Azure AI Foundry
@@ -742,12 +884,17 @@ pages:
               description: 可在控制台获取的 App ID
               label: App ID
         title: 火山引擎
+        playground:
+          default-text: 你好！这是火山引擎语音合成测试。
       xai:
         description: X.AI
         title: xAI
       302-ai:
         description: 302.AI
         title: 302.AI
+      aihubmix:
+        title: AIHubMix
+        description: https://aihubmix.com（9折优惠）
       comet-api:
         description: CometAPI.com
         title: Comet API
@@ -774,6 +921,13 @@ pages:
   scene:
     description: 配置角色所在环境
     title: 场景
+    callout:
+      label: 开发中，欢迎你来一起完善！
+      description: >-
+        该功能仍在开发中。如果你有建议或愿意参与贡献，欢迎前往
+        {githubIssuesLink}。本页面源码可在 {sourceCodeLink} 查看。
+      github-issues-link: GitHub Issues 页面
+      source-code-link: 这里
   system:
     color-scheme:
       description: 更改舞台的配色方案

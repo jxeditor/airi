@@ -5,12 +5,18 @@ import { Callout } from '@proj-airi/ui'
 <template>
   <div>
     <Callout
-      label="In development, needs your help!"
+      :label="$t('settings.pages.scene.callout.label')"
       theme="orange"
     >
       <div>
-        This functionality is still under development. If you have any suggestions or would like to contribute, please reach out to us on our <a underline decoration-dotted href="https://github.com/moeru-ai/airi/issues">GitHub issues page</a>.
-        The source code of this page is located at <a underline decoration-dotted href="https://github.com/moeru-ai/airi/tree/main/apps/stage-web/src/pages/settings/scene/index.vue">here</a>.
+        <i18n-t keypath="settings.pages.scene.callout.description">
+          <template #githubIssuesLink>
+            <a underline decoration-dotted href="https://github.com/moeru-ai/airi/issues">{{ $t('settings.pages.scene.callout.github-issues-link') }}</a>
+          </template>
+          <template #sourceCodeLink>
+            <a underline decoration-dotted href="https://github.com/moeru-ai/airi/tree/main/apps/stage-web/src/pages/settings/scene/index.vue">{{ $t('settings.pages.scene.callout.source-code-link') }}</a>
+          </template>
+        </i18n-t>
       </div>
     </Callout>
   </div>

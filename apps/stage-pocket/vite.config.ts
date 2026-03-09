@@ -74,6 +74,8 @@ export default defineConfig({
   server: {
     host: '0.0.0.0',
     port: 5273,
+    // DuckDB WASM worker ships a sourcemap pointing to missing sources; ignore to avoid dev warnings.
+    sourcemapIgnoreList: (sourcePath: string) => sourcePath.includes('duckdb'),
     warmup: {
       clientFiles: [
         `${resolve(join(import.meta.dirname, '..', '..', 'packages', 'stage-ui', 'src'))}/*.vue`,
@@ -98,6 +100,16 @@ export default defineConfig({
     ...isEnvTruthy(process.env.VITE_SKIP_MKCERT ?? '') ? [] : [mkcert()],
 
     Info(),
+
+    // Strip broken sourcemap reference from DuckDB WASM worker (npm package does not ship referenced sources).
+    {
+      name: 'strip-duckdb-worker-sourcemap',
+      transform(code, id) {
+        if (id.includes('duckdb') && id.includes('worker')) {
+          return { code: code.replace(/\n?\/\/# sourceMappingURL=.*$/m, ''), map: null }
+        }
+      },
+    },
 
     Yaml(),
 

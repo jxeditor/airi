@@ -146,7 +146,7 @@ watch(model, async () => {
         :available-voices="availableVoices"
         :generate-speech="handleGenerateSpeech"
         :api-key-configured="apiKeyConfigured"
-        default-text="Hello! This is a test of the OpenAI Speech."
+        :default-text="t('settings.pages.providers.provider.openai-audio-speech.playground.default-text')"
       />
     </template>
   </SpeechProviderSettings>

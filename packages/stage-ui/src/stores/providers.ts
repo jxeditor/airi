@@ -52,6 +52,7 @@ import { getKokoroWorker } from '../workers/kokoro'
 import { getDefaultKokoroModel, KOKORO_MODELS, kokoroModelsToModelInfo } from '../workers/kokoro/constants'
 import { createAliyunNLSProvider as createAliyunNlsStreamProvider } from './providers/aliyun/stream-transcription'
 import { convertProviderDefinitionsToMetadata } from './providers/converters'
+import { synthesizeEdgeTTS } from './providers/edge-tts/synthesize'
 import { models as elevenLabsModels } from './providers/elevenlabs/list-models'
 import { buildOpenAICompatibleProvider } from './providers/openai-compatible-builder'
 import { createWebSpeechAPIProvider } from './providers/web-speech-api'
@@ -79,6 +80,7 @@ export interface ProviderMetadata {
   description: string // Default description (fallback)
   localizedDescription?: string
   configured?: boolean
+  isConfigured?: (config: Record<string, unknown>) => boolean
   /**
    * Indicates whether the provider is available.
    * If not specified, the provider is always available.
@@ -1049,6 +1051,102 @@ export const useProvidersStore = defineStore('providers', () => {
         },
       },
     },
+    // NOTICE: Edge TTS connects directly via WebSocket to speech.platform.bing.com
+    // using the publicly-known TrustedClientToken embedded in the Edge browser.
+    // No API key or proxy is required. Browser WebSocket is not subject to CORS.
+    'edge-tts': {
+      id: 'edge-tts',
+      category: 'speech',
+      tasks: ['text-to-speech'],
+      nameKey: 'settings.pages.providers.provider.edge-tts.title',
+      name: 'Microsoft Edge TTS',
+      descriptionKey: 'settings.pages.providers.provider.edge-tts.description',
+      description: 'Free Microsoft Edge TTS (WebSocket)',
+      iconColor: 'i-lobe-icons:microsoft',
+      defaultOptions: () => ({ proxyUrl: '' }),
+      createProvider: async (config) => {
+        const proxyUrl = (config?.proxyUrl as string)?.trim() || ''
+        const provider: SpeechProvider = {
+          speech: () => ({
+            baseURL: proxyUrl || 'http://edge-tts.local/v1/',
+            model: 'edge-tts',
+            fetch: async (_input: RequestInfo | URL, init?: RequestInit) => {
+              try {
+                if (!init?.body || typeof init.body !== 'string') {
+                  throw new Error('Invalid request body')
+                }
+                const body = JSON.parse(init.body)
+                const text: string = body.input
+                const voice: string = body.voice || 'zh-CN-XiaoxiaoNeural'
+                const rateNum = typeof body.rate === 'number' ? body.rate : 0
+                const pitchNum = typeof body.pitch === 'number' ? body.pitch : 0
+                const volumeNum = typeof body.volume === 'number' ? body.volume : 0
+                const rate = `${rateNum >= 0 ? '+' : ''}${rateNum}%`
+                const pitch = `${pitchNum >= 0 ? '+' : ''}${pitchNum}Hz`
+                const volume = `${volumeNum >= 0 ? '+' : ''}${volumeNum}%`
+
+                let buffer: ArrayBuffer
+                if (proxyUrl) {
+                  const res = await fetch(proxyUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text, voice, rate, pitch, volume }),
+                  })
+                  if (!res.ok)
+                    throw new Error(`Proxy returned ${res.status}: ${await res.text()}`)
+                  buffer = await res.arrayBuffer()
+                }
+                else {
+                  buffer = await synthesizeEdgeTTS(text, voice, { rate, pitch, volume })
+                }
+                return new Response(buffer, {
+                  status: 200,
+                  headers: { 'Content-Type': 'audio/mpeg' },
+                })
+              }
+              catch (error) {
+                console.error('[EdgeTTS] Synthesis failed:', error)
+                throw error
+              }
+            },
+          }),
+        }
+        return provider
+      },
+      capabilities: {
+        listModels: async () => [{
+          id: 'edge-tts',
+          name: 'Edge TTS',
+          provider: 'edge-tts',
+          description: '',
+          contextLength: 0,
+          deprecated: false,
+        }],
+        // NOTICE: Edge TTS voices are hardcoded; the voice-listing endpoint
+        // requires an Azure key. These are publicly-documented Neural voices.
+        listVoices: async _config => [
+          // Chinese (Mandarin) – female, loli/young voices
+          { id: 'zh-CN-XiaoxiaoNeural', name: '小晓 · Xiaoxiao（甜美少女）', provider: 'edge-tts', languages: [{ code: 'zh-CN', title: '中文（普通话）' }], gender: 'female' },
+          { id: 'zh-CN-XiaoruoNeural', name: '小若 · Xiaoruo（温柔轻声）', provider: 'edge-tts', languages: [{ code: 'zh-CN', title: '中文（普通话）' }], gender: 'female' },
+          { id: 'zh-CN-XiaomengNeural', name: '小梦 · Xiaomeng（可爱萌）', provider: 'edge-tts', languages: [{ code: 'zh-CN', title: '中文（普通话）' }], gender: 'female' },
+          { id: 'zh-CN-XiaoyiNeural', name: '小艺 · Xiaoyi（活泼少女）', provider: 'edge-tts', languages: [{ code: 'zh-CN', title: '中文（普通话）' }], gender: 'female' },
+          { id: 'zh-CN-XiaohanNeural', name: '小涵 · Xiaohan（清晰少女）', provider: 'edge-tts', languages: [{ code: 'zh-CN', title: '中文（普通话）' }], gender: 'female' },
+          { id: 'zh-CN-XiaoqiuNeural', name: '小秋 · Xiaoqiu（成熟知性）', provider: 'edge-tts', languages: [{ code: 'zh-CN', title: '中文（普通话）' }], gender: 'female' },
+          { id: 'zh-CN-XiaoshuangNeural', name: '小双 · Xiaoshuang（儿童音）', provider: 'edge-tts', languages: [{ code: 'zh-CN', title: '中文（普通话）' }], gender: 'female' },
+          { id: 'zh-CN-XiaoxuanNeural', name: '小萱 · Xiaoxuan（轻盈少女）', provider: 'edge-tts', languages: [{ code: 'zh-CN', title: '中文（普通话）' }], gender: 'female' },
+          // Chinese (Mandarin) – male
+          { id: 'zh-CN-YunxiNeural', name: '云希 · Yunxi（年轻男声）', provider: 'edge-tts', languages: [{ code: 'zh-CN', title: '中文（普通话）' }], gender: 'male' },
+          { id: 'zh-CN-YunjianNeural', name: '云健 · Yunjian（成熟男声）', provider: 'edge-tts', languages: [{ code: 'zh-CN', title: '中文（普通话）' }], gender: 'male' },
+          // Chinese (Taiwan)
+          { id: 'zh-TW-HsiaoChenNeural', name: '曉臻 · HsiaoChen（台湾女声）', provider: 'edge-tts', languages: [{ code: 'zh-TW', title: '中文（台湾）' }], gender: 'female' },
+          { id: 'zh-TW-HsiaoYuNeural', name: '曉雨 · HsiaoYu（台湾女声）', provider: 'edge-tts', languages: [{ code: 'zh-TW', title: '中文（台湾）' }], gender: 'female' },
+        ],
+      },
+      validators: {
+        validateProviderConfig: () => ({ errors: [], reason: '', valid: true }),
+      },
+      isConfigured: () => true,
+    },
     'microsoft-speech': {
       id: 'microsoft-speech',
       category: 'speech',
@@ -1809,17 +1907,37 @@ export const useProvidersStore = defineStore('providers', () => {
       providerCredentials.value[providerId] = getDefaultProviderConfig(providerId)
     }
     if (!providerRuntimeState.value[providerId]) {
+      const metadata = providerMetadata[providerId]
+      const isConfigured = metadata?.isConfigured ? metadata.isConfigured(providerCredentials.value[providerId]) : false
       providerRuntimeState.value[providerId] = {
-        isConfigured: false,
+        isConfigured,
         models: [],
         isLoadingModels: false,
         modelLoadError: null,
+      }
+    }
+    else {
+      // 如果 runtime state 已存在，但 isConfigured 可能需要更新
+      const metadata = providerMetadata[providerId]
+      if (metadata?.isConfigured && !providerRuntimeState.value[providerId].isConfigured) {
+        providerRuntimeState.value[providerId].isConfigured = metadata.isConfigured(providerCredentials.value[providerId])
       }
     }
   }
 
   // Initialize all providers
   Object.keys(providerMetadata).forEach(initializeProvider)
+
+  // Watch providerCredentials and ensure Edge TTS is always configured when it has config
+  watch(
+    providerCredentials,
+    (credentials) => {
+      if (credentials['edge-tts'] && providerRuntimeState.value['edge-tts']) {
+        providerRuntimeState.value['edge-tts'].isConfigured = true
+      }
+    },
+    { immediate: true, deep: true },
+  )
 
   function startPeriodicRuntimeValidation() {
     for (const [providerId, intervalMs] of providerValidationIntervalMsById.entries()) {

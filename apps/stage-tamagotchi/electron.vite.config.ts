@@ -118,6 +118,8 @@ export default defineConfig({
     },
 
     server: {
+      // DuckDB WASM worker ships a sourcemap pointing to missing sources; ignore to avoid dev warnings.
+      sourcemapIgnoreList: (sourcePath: string) => sourcePath.includes('duckdb'),
       warmup: {
         clientFiles: [
           `${resolve(join(import.meta.dirname, '..', '..', 'packages', 'stage-ui', 'src'))}/*.vue`,
@@ -137,6 +139,16 @@ export default defineConfig({
 
     plugins: [
       Info(),
+
+      // Strip broken sourcemap reference from DuckDB WASM worker (npm package does not ship referenced sources).
+      {
+        name: 'strip-duckdb-worker-sourcemap',
+        transform(code, id) {
+          if (id.includes('duckdb') && id.includes('worker')) {
+            return { code: code.replace(/\n?\/\/# sourceMappingURL=.*$/m, ''), map: null }
+          }
+        },
+      },
 
       {
         name: 'proj-airi:defines',

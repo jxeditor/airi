@@ -264,6 +264,9 @@ overrides:
   string.prototype.matchall: npm:@nolyfill/string.prototype.matchall@^1.0.44
 
 patchedDependencies:
+  '@duckdb/duckdb-wasm@1.29.1-dev68.0':
+    hash: d0d77b741d500740542ae7b0ad43bf31dd975278fb13f9dcc264ba215c8d2d6a
+    path: patches/@duckdb__duckdb-wasm@1.29.1-dev68.0.patch
   mineflayer-pathfinder:
     hash: 4bbfdca823ab48b74086e6e7d4b2f9baf5ee7c0ba9aee0c279b3c91c50bfd797
     path: patches/mineflayer-pathfinder.patch
@@ -395,6 +398,9 @@ importers:
       vitest:
         specifier: ^4.0.18
         version: 4.0.18(@opentelemetry/api@1.9.0)(@types/node@24.10.14)(@vitest/browser-playwright@4.0.18)(jiti@2.6.1)(jsdom@27.4.0(bufferutil@4.1.0)(canvas@3.2.1)(utf-8-validate@5.0.10))(less@4.5.1)(lightningcss@1.31.1)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2)
+      ws:
+        specifier: 'catalog:'
+        version: 8.19.0(bufferutil@4.1.0)(utf-8-validate@5.0.10)
       yaml:
         specifier: ^2.8.2
         version: 2.8.2
@@ -18803,7 +18809,7 @@ snapshots:
 
   '@drizzle-team/brocli@0.10.2': {}
 
-  '@duckdb/duckdb-wasm@1.29.1-dev68.0':
+  '@duckdb/duckdb-wasm@1.29.1-dev68.0(patch_hash=d0d77b741d500740542ae7b0ad43bf31dd975278fb13f9dcc264ba215c8d2d6a)':
     dependencies:
       apache-arrow: 17.0.0
 
@@ -21898,7 +21904,7 @@ snapshots:
   '@proj-airi/drizzle-duckdb-wasm@0.4.29(drizzle-orm@0.45.1(@electric-sql/pglite@0.3.15)(@opentelemetry/api@1.9.0)(@prisma/client@5.22.0)(@types/pg@8.16.0)(better-sqlite3@12.5.0)(kysely@0.28.11)(pg@8.19.0)(postgres@3.4.8))':
     dependencies:
       '@date-fns/tz': 1.4.1
-      '@duckdb/duckdb-wasm': 1.29.1-dev68.0
+      '@duckdb/duckdb-wasm': 1.29.1-dev68.0(patch_hash=d0d77b741d500740542ae7b0ad43bf31dd975278fb13f9dcc264ba215c8d2d6a)
       '@moeru/std': 0.1.0-beta.1
       '@proj-airi/duckdb-wasm': 0.4.29(drizzle-orm@0.45.1(@electric-sql/pglite@0.3.15)(@opentelemetry/api@1.9.0)(@prisma/client@5.22.0)(@types/pg@8.16.0)(better-sqlite3@12.5.0)(kysely@0.28.11)(pg@8.19.0)(postgres@3.4.8))
       apache-arrow: 21.1.0
@@ -21916,7 +21922,7 @@ snapshots:
   '@proj-airi/duckdb-wasm@0.4.29(drizzle-orm@0.45.1(@electric-sql/pglite@0.3.15)(@opentelemetry/api@1.9.0)(@prisma/client@5.22.0)(@types/pg@8.16.0)(better-sqlite3@12.5.0)(kysely@0.28.11)(pg@8.19.0)(postgres@3.4.8))':
     dependencies:
       '@date-fns/tz': 1.4.1
-      '@duckdb/duckdb-wasm': 1.29.1-dev68.0
+      '@duckdb/duckdb-wasm': 1.29.1-dev68.0(patch_hash=d0d77b741d500740542ae7b0ad43bf31dd975278fb13f9dcc264ba215c8d2d6a)
       '@moeru/std': 0.1.0-beta.1
       apache-arrow: 21.1.0
       date-fns: 4.1.0

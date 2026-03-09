@@ -350,6 +350,75 @@ pages:
     hearing:
       description: Configure how speech recognition works
       title: Hearing
+      no-providers:
+        title: No Transcription Providers Configured
+        description: Click here to set up your transcription providers
+      audio-input:
+        label: Audio Input Device
+        description: Select the audio input device for your hearing module.
+        placeholder: Select an audio input device
+      model:
+        description-manual: Enter the transcription model to use (e.g., 'whisper-1', 'gpt-4o-transcribe')
+        placeholder: whisper-1
+      auto-send:
+        title: Auto-send Settings
+        description: Configure automatic sending of transcribed text to chat
+        enabled:
+          label: Auto-send transcribed text
+          description: Automatically send transcribed text to chat after a delay. This may consume tokens, so disable if you want to manually review and edit transcriptions before sending.
+        delay:
+          label: Auto-send delay
+          description: Delay in milliseconds before automatically sending transcribed text (0 = send immediately, recommended 1000-3000ms)
+          immediate: Immediate
+      monitoring:
+        start: Start Monitoring
+        stop: Stop Monitoring
+      meters:
+        input-level: Input Level
+        speech-probability: Probability of Speech
+        detection-threshold: Detection threshold
+        sensitivity:
+          label: Sensitivity
+          description: Adjust the threshold for speech detection
+      speaking:
+        detected: Speaking Detected
+        model-based: Model Based
+        volume-based: Volume Based
+        model-based-description: Use AI models for more accurate speech detection
+      voice-activity:
+        title: Voice Activity
+        subtitle: Last 2 seconds
+        active-label: Speaking
+        active-legend: Voice detected
+        threshold-label: Speech threshold
+      stt-test:
+        title: Speech-to-Text Test
+        description: Test your transcription provider with the selected audio device. This helps verify STT is working correctly.
+        select-provider: Please select a transcription provider above to test
+        select-audio-input: Please select an audio input device to test
+        start: Start Speech-to-Text Test
+        stop: Stop Test
+        transcribing: Transcribing...
+        streaming-mode: 'Streaming mode: transcription appears in real time as you speak'
+        result: Transcription Result
+        current-streaming: 'Current transcription (streaming):'
+        final: 'Final transcription:'
+        no-transcription: No transcription yet. Click "Start Speech-to-Text Test" and speak into your microphone.
+      common:
+        silence: Silence
+        speech: Speech
+        loading: Loading...
+        activated: Activated
+        probability: Probability
+      errors:
+        generic: Error occurred
+        inference: Inference error
+        transcription: Transcription Error
+        select-provider-first: Please select a transcription provider first
+        select-audio-input-first: Please select an audio input device first
+      status:
+        transcribing-recording: Transcribing recording...
+        transcribing-streaming: Transcribing... (streaming)
       sections:
         section:
           provider-selection:
@@ -371,6 +440,27 @@ pages:
       configured: Discord is properly configured!
     speech:
       description: Speech synthesis
+      no-providers:
+        title: No Speech Providers Configured
+        description: Click here to set up your speech providers
+      fields:
+        model:
+          label: Model
+          description: Enter the TTS model to use for speech generation
+          manual-description-discovery-failed: Enter model name manually if model discovery fails
+          manual-description-empty: Enter model name manually when no models are returned
+        pitch:
+          label: Pitch
+          description: Tune the pitch of the voice
+        enable-ssml:
+          label: Enable SSML
+          description: Enable Speech Synthesis Markup Language for more control over speech output
+        voice-name:
+          label: Voice Name
+          description: Enter the voice name for your custom voice
+          placeholder: Enter voice name (e.g., 'alloy', 'echo')
+      errors:
+        loading-voices: Error loading voices
       sections:
         section:
           playground:
@@ -404,6 +494,9 @@ pages:
             show_less: Show less
             show_more: Show more
             title: Provider
+          voice-configuration:
+            title: Voice Configuration
+            description: Customize how your AI assistant speaks
           voice-settings:
             input-ssml:
               placeholder: Enter SSML text...
@@ -459,6 +552,19 @@ pages:
         AIRI requires at least one {chat} provider to be configured to think,
         and behave properly. You could think of it as the brain of the
         characters living in AIRI system.
+    blocks:
+      chat:
+        title: Chat
+        description: Text generation model providers. e.g. OpenRouter, OpenAI, Ollama.
+      speech:
+        title: Speech
+        description: Speech (text-to-speech) model providers. e.g. ElevenLabs, Azure Speech.
+      transcription:
+        title: Transcription
+        description: >-
+          Transcription (speech-to-text) model providers. e.g. Whisper.cpp,
+          OpenAI, Azure Speech
+    unknown-provider: Unknown
     catalog:
       edit:
         config-id-not-found: Provider configuration not found.
@@ -579,6 +685,8 @@ pages:
       alibaba-cloud-model-studio:
         description: bailian.console.aliyun.com
         title: Alibaba Cloud Model Studio
+        playground:
+          default-text: Hello! This is a test of Alibaba Cloud speech synthesis.
       anthropic:
         description: anthropic.com
         title: Anthropic | Claude
@@ -626,6 +734,8 @@ pages:
       deepgram-tts:
         description: deepgram.com
         title: Deepgram
+        playground:
+          default-text: Hello! This is a test of the Deepgram voice synthesis.
       speech-noop:
         title: None
         description: No speech output.
@@ -652,6 +762,7 @@ pages:
               description: Voice style exaggeration
               label: Style
         playground:
+          default-text: Hello! This is a test of the ElevenLabs voice synthesis.
           buttons:
             button:
               test-voice:
@@ -700,6 +811,17 @@ pages:
       fireworks:
         description: fireworks.ai
         title: Fireworks.ai
+      edge-tts:
+        browser-notice: Microsoft only allows direct connection from the Edge browser. If you use Chrome, Firefox or Safari, no audio will be generated. Please open this page in Microsoft Edge to test.
+        description: Free Microsoft Edge TTS — no API key required
+        fields:
+          field:
+            proxy-url:
+              description: Optional. Run a local Edge TTS proxy (e.g. with edge-tts-universal) and paste its URL here to use in Chrome/Firefox/Safari.
+              label: Proxy URL (optional)
+        title: Microsoft Edge TTS (Free)
+        playground:
+          default-text: 你好！这是微软 Edge TTS 的中文语音测试。
       microsoft-speech:
         description: speech.microsoft.com
         fields:
@@ -708,11 +830,30 @@ pages:
               description: Speech Service region
               label: Region
         title: Microsoft / Azure Speech
+        playground:
+          default-text: Hello! This is a test of the Microsoft Speech synthesis.
       index-tts-vllm:
         description: https://index-tts.github.io/
         title: Bilibili / IndexTTS
         callout_indextts2_unavailable_title: Limited Support
         callout_indextts2_unavailable: Support for IndexTTS2 is currently unavailable. Please use IndexTTS.
+        playground:
+          default-text: Hello! This is a test of the Index TTS speech synthesis.
+      openai-audio-speech:
+        playground:
+          default-text: Hello! This is a test of the OpenAI speech synthesis.
+      openai-compatible-audio-speech:
+        playground:
+          default-text: Hello! This is a test of OpenAI compatible speech synthesis.
+      comet-api-speech:
+        playground:
+          default-text: Hello! This is a test of Comet API speech synthesis.
+      player2-speech:
+        help:
+          download: 'Download and start Player2 first:'
+          discord: 'If you need help, join the Player2 Discord:'
+        playground:
+          default-text: Hello! This is a test of Player2 speech synthesis.
       azure-ai-foundry:
         description: Azure AI Foundry
         title: Azure AI Foundry
@@ -781,6 +922,8 @@ pages:
               description: App ID of the project where you can obtain in Console
               label: App ID
         title: Volcano Engine
+        playground:
+          default-text: Hello! This is a test of Volcengine speech synthesis.
       xai:
         description: x.ai
         title: xAI
@@ -816,6 +959,15 @@ pages:
   scene:
     description: Configure the environment where the character lives
     title: Scene
+    callout:
+      label: In development, needs your help!
+      description: >-
+        This functionality is still under development. If you have any
+        suggestions or would like to contribute, please reach out to us on our
+        {githubIssuesLink}. The source code of this page is located at
+        {sourceCodeLink}.
+      github-issues-link: GitHub issues page
+      source-code-link: here
   system:
     color-scheme:
       description: Change the color scheme of the stage.

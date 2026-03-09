@@ -148,7 +148,7 @@ watch(providers, async () => {
         :available-voices="availableVoices"
         :generate-speech="handleGenerateSpeech"
         :api-key-configured="apiKeyConfigured"
-        default-text="Hello! This is a test of the ElevenLabs voice synthesis."
+        :default-text="t('settings.pages.providers.provider.alibaba-cloud-model-studio.playground.default-text')"
       />
     </template>
   </SpeechProviderSettings>

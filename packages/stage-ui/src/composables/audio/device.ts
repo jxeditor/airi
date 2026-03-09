@@ -42,5 +42,6 @@ export function useAudioDevice() {
     stopStream,
     startStream,
     deviceConstraints,
+    askPermission: devices.ensurePermissions,
   }
 }

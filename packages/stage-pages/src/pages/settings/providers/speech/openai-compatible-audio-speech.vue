@@ -189,7 +189,7 @@ const {
         v-model:voice="voice as any"
         :generate-speech="handleGenerateSpeech"
         :api-key-configured="apiKeyConfigured"
-        default-text="Hello! This is a test of the OpenAI Compatible Speech."
+        :default-text="t('settings.pages.providers.provider.openai-compatible-audio-speech.playground.default-text')"
       />
     </template>
 

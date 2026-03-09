@@ -72,7 +72,7 @@ watch(providers, async () => {
         :available-voices="availableVoices"
         :generate-speech="handleGenerateSpeech"
         :api-key-configured="apiKeyConfigured"
-        default-text="Hello! This is a test of the Deepgram voice synthesis."
+        :default-text="$t('settings.pages.providers.provider.deepgram-tts.playground.default-text')"
       />
     </template>
   </SpeechProviderSettings>
