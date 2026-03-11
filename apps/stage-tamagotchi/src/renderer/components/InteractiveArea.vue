@@ -104,7 +104,7 @@ function removeAttachment(index: number) {
 }
 
 watch([activeProvider, activeModel], async () => {
-  if (activeProvider.value && activeModel.value) {
+  if (activeProvider.value && activeModel.value && providersStore.configuredProviders[activeProvider.value]) {
     await discoverToolsCompatibility(activeModel.value, await providersStore.getProviderInstance<ChatProvider>(activeProvider.value), [])
   }
 }, { immediate: true })

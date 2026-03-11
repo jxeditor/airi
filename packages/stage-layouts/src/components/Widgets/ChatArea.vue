@@ -19,6 +19,21 @@ import { useI18n } from 'vue-i18n'
 
 import IndicatorMicVolume from './IndicatorMicVolume.vue'
 
+function extractErrorMessage(error: unknown): string {
+  const raw = error instanceof Error ? error.message : String(error)
+  // xsai throws: "Error from server: {json}"
+  const jsonStart = raw.indexOf('{')
+  if (jsonStart !== -1) {
+    try {
+      const parsed = JSON.parse(raw.slice(jsonStart))
+      if (parsed?.error?.message)
+        return parsed.error.message
+    }
+    catch {}
+  }
+  return raw
+}
+
 const messageInput = ref('')
 const hearingTooltipOpen = ref(false)
 const isComposing = ref(false)
@@ -123,7 +138,7 @@ async function handleSend() {
     messages.value.pop()
     messages.value.push({
       role: 'error',
-      content: (error as Error).message,
+      content: extractErrorMessage(error),
     })
   }
 }
@@ -135,7 +150,7 @@ watch(hearingTooltipOpen, async (value) => {
 })
 
 watch([activeProvider, activeModel], async () => {
-  if (activeProvider.value && activeModel.value) {
+  if (activeProvider.value && activeModel.value && providersStore.configuredProviders[activeProvider.value]) {
     await discoverToolsCompatibility(activeModel.value, await providersStore.getProviderInstance<ChatProvider>(activeProvider.value), [])
   }
 })

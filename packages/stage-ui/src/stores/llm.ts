@@ -97,7 +97,7 @@ async function streamFrom(model: string, chatProvider: ChatProvider, messages: M
     }
 
     try {
-      streamText({
+      const { steps } = streamText({
         ...chatConfig,
         maxSteps: 10,
         messages: sanitized,
@@ -106,6 +106,9 @@ async function streamFrom(model: string, chatProvider: ChatProvider, messages: M
         tools,
         onEvent,
       })
+      // Catch errors from xsai's internal async pipeline (e.g. API quota errors,
+      // network failures) that don't surface through onEvent but do reject `steps`.
+      steps.catch(rejectOnce)
     }
     catch (err) {
       rejectOnce(err)

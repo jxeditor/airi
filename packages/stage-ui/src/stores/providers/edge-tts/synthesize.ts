@@ -16,10 +16,31 @@
 // NOTICE: Publicly known token embedded in Microsoft Edge browser binary.
 // See https://github.com/rany2/edge-tts/blob/master/src/edge_tts/constants.py
 const TRUSTED_CLIENT_TOKEN = '6A5AA1D4EAFF4E9FB37E23D68491D6F4'
-const WSS_URL = `wss://speech.platform.bing.com/consumer/speech/synthesize/realtimestreaming/edge/v1?TrustedClientToken=${TRUSTED_CLIENT_TOKEN}`
+const WSS_BASE = `wss://speech.platform.bing.com/consumer/speech/synthesize/realtimestreaming/edge/v1?TrustedClientToken=${TRUSTED_CLIENT_TOKEN}`
+const SEC_MS_GEC_VERSION = '1-145.0.3800.97'
 
 // Default output format: MP3 at 24kHz, 48kbps mono
 const OUTPUT_FORMAT = 'audio-24khz-48kbitrate-mono-mp3'
+
+/**
+ * Compute Sec-MS-GEC token required by Microsoft since early 2024.
+ * Token = SHA256(windows_filetime_rounded_5min + TRUSTED_CLIENT_TOKEN).toUpperCase()
+ * Reference: https://github.com/rany2/edge-tts
+ */
+async function generateSecMsGec(): Promise<string> {
+  // Windows FILETIME: 100ns intervals since 1601-01-01 = Unix seconds + 11644473600 epochs
+  const WIN_EPOCH_OFFSET = 11644473600n
+  const nowSec = BigInt(Math.floor(Date.now() / 1000))
+  const filetime = (nowSec + WIN_EPOCH_OFFSET) * 10000000n
+  // Round down to nearest 5 minutes (5 * 60 * 10_000_000 = 3_000_000_000)
+  const rounded = (filetime / 3000000000n) * 3000000000n
+  const hashInput = new TextEncoder().encode(`${rounded}${TRUSTED_CLIENT_TOKEN}`)
+  const hashBuffer = await crypto.subtle.digest('SHA-256', hashInput)
+  return Array.from(new Uint8Array(hashBuffer))
+    .map(b => b.toString(16).padStart(2, '0'))
+    .join('')
+    .toUpperCase()
+}
 
 export interface EdgeTTSSynthesizeOptions {
   /** Speaking rate as percentage offset, e.g. +20% or -10% */
@@ -34,15 +55,17 @@ export interface EdgeTTSSynthesizeOptions {
  * Synthesize text to speech using the Edge TTS WebSocket API.
  * Returns raw MP3 audio bytes as an ArrayBuffer.
  */
-export function synthesizeEdgeTTS(
+export async function synthesizeEdgeTTS(
   text: string,
   voice: string,
   options?: EdgeTTSSynthesizeOptions,
 ): Promise<ArrayBuffer> {
+  const gec = await generateSecMsGec()
+  const connectionId = crypto.randomUUID().replace(/-/g, '')
+  const url = `${WSS_BASE}&Sec-MS-GEC=${gec}&Sec-MS-GEC-Version=${SEC_MS_GEC_VERSION}&ConnectionId=${connectionId}`
+
   return new Promise((resolve, reject) => {
-    const connectionId = crypto.randomUUID().replace(/-/g, '')
     const requestId = crypto.randomUUID().replace(/-/g, '')
-    const url = `${WSS_URL}&ConnectionId=${connectionId}`
 
     const ws = new WebSocket(url)
     ws.binaryType = 'arraybuffer'

@@ -67,47 +67,58 @@ export function safelistAllPrimaryBackgrounds(): string[] {
 }
 
 export function presetWebFontsFonts(provider: 'fontsource' | 'none'): Record<string, string | WebFontMeta | (string | WebFontMeta)[]> {
+  const preferStatic = provider === 'fontsource'
   return {
     'sans': {
       name: provider === 'fontsource' ? 'DM Sans' : 'DM Sans Variable',
       provider,
+      preferStatic,
     },
     'serif': {
       name: 'DM Serif Display',
       provider,
+      preferStatic,
     },
     'mono': {
       name: 'DM Mono',
       provider,
+      preferStatic,
     },
     'cutejp': {
       name: 'Kiwi Maru',
       provider,
       subsets: ['latin', 'japanese'],
+      preferStatic,
     },
     'cuteen': {
       name: 'Sniglet',
       provider,
+      preferStatic,
     },
     'jura': {
       name: provider === 'fontsource' ? 'Jura' : 'Jura Variable',
       provider,
+      preferStatic,
     },
     'gugi': {
       name: 'Gugi',
       provider,
+      preferStatic,
     },
     'quicksand': {
       name: provider === 'fontsource' ? 'Quicksand' : 'Quicksand Variable',
       provider,
+      preferStatic,
     },
     'urbanist': {
       name: provider === 'fontsource' ? 'Urbanist' : 'Urbanist Variable',
       provider,
+      preferStatic,
     },
     'comfortaa': {
       name: provider === 'fontsource' ? 'Comfortaa' : 'Comfortaa Variable',
       provider,
+      preferStatic,
     },
     'm-plus-rounded': {
       name: 'M PLUS Rounded 1c',
